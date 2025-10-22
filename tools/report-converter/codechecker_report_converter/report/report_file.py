@@ -77,11 +77,15 @@ def create(
     analyzer_info: Optional[AnalyzerInfo] = None
 ):
     """ Creates an analyzer output file from the given reports. """
-    parser = get_parser(output_file_path, checker_labels)
+    #parser = get_parser(output_file_path, checker_labels)
+    parser = sarif.Parser(output_file_path,checker_labels)
+    newOutPutFilePath = os.path.splitext(output_file_path)[0] + ".sarif"
 
     if parser:
         data = parser.convert(reports, analyzer_info)
-        parser.write(data, output_file_path)
+        parser.write(data, newOutPutFilePath)
+        if os.path.exists(output_file_path):
+            os.remove(output_file_path)
 
 
 def replace_report_hash(
