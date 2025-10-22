@@ -77,6 +77,7 @@ class Parser(BaseParser):
                 severity = self.get_severity(rule_id)
                 message = self._process_message(
                     result["message"], rule_id, rules)  # §3.11
+                severity = self.get_severity(rule_id)
 
                 thread_flow_info = self._process_code_flows(
                     result, rule_id, rules)
@@ -345,6 +346,9 @@ class Parser(BaseParser):
             "ruleId": report.checker_name,
             "message": {
                 "text": report.message
+            },
+            "properties":{
+                "hash": report.report_hash
             },
             "locations": [{
                 "physicalLocation": {
