@@ -13,6 +13,7 @@ import os
 from pathlib import Path
 import plistlib
 import re
+import shutil
 import subprocess
 import sys
 from typing import List, Optional, Tuple
@@ -451,6 +452,21 @@ class ClangSA(analyzer_base.SourceAnalyzer):
         they might rely on each other under the hood. The disabled checkers'
         reports are removed in this post-processing step.
         """
+        output_dir = Path(result_handler.workspace, "clangsa",
+                              result_handler.buildaction_hash)
+        analyzer_output_file = str(output_dir) + '/' + os.path.basename(result_handler.analyzer_result_file).split('/')[-1]
+        clangsa_outs = output_dir.glob('**/*.plist')
+
+        for clangsa_out in list(clangsa_outs):
+            codechecker_out = os.path.join(result_handler.workspace,
+                                           result_handler.analyzer_result_file)
+
+            try:
+                shutil.copy2(clangsa_out, codechecker_out)
+                Path(clangsa_out).rename(str(clangsa_out) + ".bak")
+            except (OSError) as e:
+                LOG.error(e.errno)
+
         try:
             if not os.path.isfile(result_handler.analyzer_result_file):
                 # This check has the same race-condition reason as the
@@ -489,7 +505,12 @@ class ClangSA(analyzer_base.SourceAnalyzer):
         """
         try:
             # Get an output file from the result handler.
-            analyzer_output_file = result_handler.analyzer_result_file
+            output_dir = Path(result_handler.workspace, "clangsa",
+                              result_handler.buildaction_hash)
+            if not output_dir.exists():
+                output_dir.mkdir(parents=True,exist_ok=True)
+
+            analyzer_output_file = str(output_dir) + '/' + os.path.basename(result_handler.analyzer_result_file).split('/')[-1]
 
             # Get the checkers list from the config_handler.
             # Checker order matters.
