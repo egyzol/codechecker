@@ -539,14 +539,13 @@ def assemble_zip(inputs,
             file_paths.update(report.original_files)
             file_report_positions[report.file.original_path].add(report.line)
 
-    temp_dir = tempfile.mkdtemp('-unique-plists', dir=tmp_dir)
+    temp_dir = tempfile.mkdtemp('-unique-sarifs', dir=inputs[0])
     for dirname, analyzer_reports in unique_reports.items():
         for analyzer_name, reports in analyzer_reports.items():
             if not analyzer_name:
                 analyzer_name = 'unknown'
             tmpfile = os.path.join(
-                temp_dir, f'{uuid.uuid4()}-{analyzer_name}.plist')
-
+                temp_dir, f'{uuid.uuid4()}-{analyzer_name}.sarif')
             report_file.create(tmpfile, reports, checker_labels,
                                AnalyzerInfo(analyzer_name))
             LOG.debug(f"Stored '{analyzer_name}' unique reports in {tmpfile}.")
@@ -1026,7 +1025,7 @@ def main(args):
                 import traceback
                 _, _, tb = sys.exc_info()
                 frames = traceback.extract_tb(tb)
-                first, last = frames[0], frames[-2]
+                first, last = os.statframes[0], frames[-2]
                 formatted_frames = traceback.format_list([first, last])
                 fmt_first, fmt_last = formatted_frames[0], formatted_frames[1]
                 LOG.info("Timeout was triggered during:\n%s", fmt_first)
