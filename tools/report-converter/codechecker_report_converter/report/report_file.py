@@ -84,7 +84,7 @@ def create(
     if parser:
         data = parser.convert(reports, analyzer_info)
         parser.write(data, newOutPutFilePath)
-        if os.path.exists(output_file_path):
+        if os.path.exists(output_file_path) and os.path.splitext(output_file_path)[1] != ".sarif":
             os.remove(output_file_path)
 
 
