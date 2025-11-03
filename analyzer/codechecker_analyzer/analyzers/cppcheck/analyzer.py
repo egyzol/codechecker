@@ -361,6 +361,7 @@ class Cppcheck(analyzer_base.SourceAnalyzer):
                                    "cppcheck",
                                    result_handler.buildaction_hash)
         cppcheck_outs = cppcheck_out_folder.glob('**/*.plist')
+        #cppcheck_outs = cppcheck_out_folder.glob('**/*.sarif')
 
         for cppcheck_out in list(cppcheck_outs):
             codechecker_out = os.path.join(result_handler.workspace,
