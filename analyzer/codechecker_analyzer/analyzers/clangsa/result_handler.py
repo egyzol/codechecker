@@ -11,6 +11,7 @@ Result handler for Clang Static Analyzer.
 
 import os
 
+from pathlib import Path
 from typing import Optional
 
 from codechecker_report_converter.report.parser.base import AnalyzerInfo
