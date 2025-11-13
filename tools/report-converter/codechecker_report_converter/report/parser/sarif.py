@@ -162,18 +162,33 @@ class Parser(BaseParser):
                     location = location_data["location"]
 
                     if "message" not in location:
+                        a = 13
                         # TODO: This might be a bug path position (for arrows).
-                        continue
-
-                    message = self._process_message(
-                        location["message"], rule_id, rules)
+                    else:
+                        message = self._process_message(location["message"], rule_id, rules)
 
                     file, rng = self._process_location(location)
                     if not (file and rng):
                         continue
 
-                    thread_flow_info.bug_path_events.append(BugPathEvent(
-                        message, file, rng.start_line, rng.start_col, rng))
+                    if "importance" in location_data:
+                        if location_data["importance"] == "essential":
+                            if "properties" in location_data:
+                                name = location_data["properties"]["name"]
+                                thread_flow_info.macro_expansions.append(MacroExpansion(
+                                    message,name,file,rng.start_line,rng.start_col,Range(rng.start_line,rng.start_col,rng.end_line,rng.end_col)
+                                ))
+                            else:
+                                thread_flow_info.notes.append(BugPathEvent(
+                                    message,file,rng.start_line,rng.start_col,Range(rng.start_line,rng.start_col,rng.end_line,rng.end_col)
+                                ))
+                            continue
+
+                    if "message" in location:
+                        thread_flow_info.bug_path_events.append(BugPathEvent(
+                            message, file, rng.start_line, rng.start_col, rng))
+                    else:
+                        thread_flow_info.bug_path_positions.append(BugPathPosition(file,Range(rng.start_line,rng.start_col,rng.end_line,rng.end_col)))
 
         return thread_flow_info
 
@@ -377,7 +392,7 @@ class Parser(BaseParser):
 
         if report.macro_expansions:
             for macro_expansion in report.macro_expansions:
-                locations.append(self._create_location_from_bug_path_event(
+                locations.append(self._create_location_from_macro_expansion(
                     macro_expansion, "essential"))
 
         if report.bug_path_positions:
@@ -390,6 +405,18 @@ class Parser(BaseParser):
             }]
 
         return result
+    def _create_location_from_macro_expansion(
+            self,
+            expansion: MacroExpansion,
+            importance: str) -> Dict[str,Any]:
+        """ Create location from macro expansion. """
+        location = self._create_location(expansion, expansion.line, expansion.column)
+
+        location["importance"] = importance
+        location["location"]["message"] = {"text": expansion.message}
+        location["properties"] = {"name": expansion.name}
+
+        return location
 
     def _create_location_from_bug_path_event(
         self,
